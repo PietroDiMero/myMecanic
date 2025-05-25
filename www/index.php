@@ -17,6 +17,7 @@ if (isset($_POST['username'], $_POST['password'])) {
             <title>Accueil</title>
         </head>
         <body>
+            <nav> <a href="clients.html">Ajouter un Client</a></nav>
             
         </body>
         </html>

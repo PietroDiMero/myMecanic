@@ -6,7 +6,7 @@
     <title>Connexion</title>
 </head>
 <body>
-    <form method="POST" action="../www/index.php">
+    <form id ="connect" method="POST" action="../www/index.php">
         <label for="username">Identifiant :</label>
         <input type="text" name="username" id="username"> 
         <label for="password">Identifiant :</label>
