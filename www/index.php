@@ -1,4 +1,5 @@
 <?php
+session_start();
 //je définie le mdp de connexion
 $motDePasse = "Charlotte333";
 $Identifiant = "jean.marie";
@@ -17,8 +18,13 @@ if (isset($_POST['username'], $_POST['password'])) {
             <title>Accueil</title>
         </head>
         <body>
-            <nav> <a href="clients.html">Ajouter un Client</a></nav>
-            
+            <nav> 
+                <button onclick="chargerPage('clients.html')">Ajouter des clients</button>
+                <button onclick="chargerPage('listClients.html')">Voir mes clients</button>
+                
+        </nav>
+        <div id="contenu"></div>
+            <script src="script.js"></script>
         </body>
         </html>
         <?php

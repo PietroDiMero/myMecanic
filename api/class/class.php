@@ -48,7 +48,7 @@ class Client {
     }
 
     public function getClient($id) {
-    $stmt = $this->db->prepare("SELECT nom, prenom, telephone FROM clients WHERE id = :id");
+    $stmt = $this->db->prepare("SELECT * FROM clients WHERE id = :id");
     $stmt->execute(['id' => $id]);
     return $stmt->fetch(); // fetch() pour un seul résultat
     }

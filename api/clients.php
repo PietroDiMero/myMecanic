@@ -17,7 +17,7 @@ if (isset($_POST['firstName']) && isset($_POST['lastName'])) {
 
     // Redirection vers la page des clients
    if (!headers_sent()) {
-    header('Location: ../www/clients.html?success=1');
+    header('Location: ../www/index.php?success=1');
     exit;
 }
     exit;
