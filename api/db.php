@@ -1,4 +1,7 @@
 <?php
+
+require_once 'login.php';
+
 $host = '127.0.0.1';
 $dbname = 'mecanic'; // Remplace par le nom de ta base
 $user = 'root';        // Ton utilisateur MySQL

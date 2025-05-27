@@ -1,6 +1,6 @@
 <?php 
 
-
+require_once 'login.php';
 require_once 'db.php';  // Doit être en haut pour avoir $mysql
 require_once 'class/class.php';
 
