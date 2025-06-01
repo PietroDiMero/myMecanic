@@ -1,0 +1,19 @@
+<div id="formulaireTravaux">
+  <h3>Ajouter un travail</h3>
+  <form id="formTravail">
+    <input type="hidden" name="client_id" id="client_id">
+    <input type="hidden" name="vehicule_id" id="vehicule_id">
+    
+    <label for="description">Description :</label><br>
+    <textarea name="description" id="description" required></textarea><br><br>
+
+    <!-- ✅ Nouveau champ date/heure -->
+    <label for="date_travail">Date et heure de la prestation :</label><br>
+    <input type="datetime-local" name="date_travail" id="date_travail" required><br><br>
+
+    <button type="submit">Créer le travail</button>
+  </form>
+
+  <p id="messageTravail"></p>
+  <div id="listeTravaux"></div>
+</div>

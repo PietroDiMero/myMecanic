@@ -64,3 +64,24 @@ CREATE TABLE pieces (
   prix DECIMAL(10,2),
   FOREIGN KEY (travail_id) REFERENCES travaux(id) ON DELETE CASCADE
 );
+
+CREATE TABLE rendez_vous (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NOT NULL,
+  vehicule_id INT NOT NULL,
+  date_rdv DATETIME NOT NULL,
+  commentaire TEXT,
+  statut ENUM('prévu', 'honoré', 'annulé') DEFAULT 'prévu',
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  FOREIGN KEY (vehicule_id) REFERENCES vehicules(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE pauses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  travail_id INT NOT NULL,
+  debut_pause DATETIME,
+  fin_pause DATETIME,
+  FOREIGN KEY (travail_id) REFERENCES travaux(id) ON DELETE CASCADE
+);
+

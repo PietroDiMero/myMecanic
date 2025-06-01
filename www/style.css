@@ -1,0 +1,421 @@
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:root {
+  --bg-main: #f0f4f8;
+  --text-main: #1f1f1f;
+  --text-title: #112;
+  --accent-primary: #4f8cff;
+  --accent-gradient: linear-gradient(90deg, #4f8cff 0%, #1ec8e7 100%);
+  --accent-danger: linear-gradient(90deg, #ff4f6d 0%, #ffb86c 100%);
+  --card-bg: #ffffff;
+  --input-bg: #f9fafc;
+  --border-default: #d3d9e4;
+  --border-focus: #4f8cff;
+  --shadow-small: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-large: 0 6px 20px rgba(79, 140, 255, 0.15);
+  --radius-base: 14px;
+  --font-base: 'Inter', Arial, sans-serif;
+  --transition-fast: 0.2s ease-in-out;
+}
+
+/* =========================
+   BASE
+========================= */
+body {
+  font-family: var(--font-base);
+  background: var(--bg-main);
+  color: var(--text-main);
+  margin: 0;
+  padding-top: 60px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s;
+}
+
+/* =========================
+   TYPOGRAPHIE
+========================= */
+h1, h2, h3 {
+  color: var(--text-title);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+h2, h3 {
+  font-size: 1.3em;
+}
+
+p {
+  margin: 0.8em 0;
+  line-height: 1.6;
+  color: #444;
+}
+
+/* =========================
+   NAVBAR FIXE (HEADER)
+========================= */
+.app-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 70px;
+  width: 100%;
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  z-index: 1000;
+  border-bottom: 1px solid #e5eaf0;
+}
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.app-logo {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-title);
+}
+.burger-button {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-title);
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.icon-button {
+  background: var(--accent-gradient);
+  border: none;
+  color: white;
+  width:40px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10;
+  font-size: 1rem;
+  box-shadow: var(--shadow-small);
+  cursor: pointer;
+  transition: 0.2s ease;
+  margin: 10;
+}
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-primary);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.icon-button:hover {
+  filter: brightness(1.1);
+}
+
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 240px;
+  height: 100%;
+  background: var(--card-bg);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+  padding: 80px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 999;
+  transition: left 0.3s ease;
+}
+
+.side-menu button {
+  font-size: 1rem;
+  padding: 12px;
+  border-radius: var(--radius-base);
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: var(--shadow-small);
+}
+
+.side-menu.open {
+  left: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0,0,0,0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 998;
+}
+
+.menu-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+
+/* =========================
+   BOUTONS GÉNÉRAUX
+========================= */
+button {
+  display: block;
+  width: 100%;
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius-base);
+  padding: 14px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-small);
+  transition: var(--transition-fast);
+}
+button:hover {
+  filter: brightness(1.05);
+  box-shadow: var(--shadow-large);
+}
+button:active {
+  transform: scale(0.98);
+}
+button[style*="red"], .danger-button {
+  background: var(--accent-danger);
+  color: white;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+}
+.danger-button:hover {
+  filter: brightness(1.05);
+}
+
+/* =========================
+   ZONE ACCUEIL ACTIONS
+========================= */
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+}
+
+/* =========================
+   CARDS
+========================= */
+.client-card, .vehicule-card, .travail-card, .piece-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-small);
+  margin: 16px auto;
+  padding: 20px 16px;
+  max-width: 600px;
+  font-size: 1.08em;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 5px solid #4f8cff15;
+  transition: var(--transition-fast);
+}
+.client-card:hover, .vehicule-card:hover, .travail-card:hover, .piece-card:hover {
+  box-shadow: var(--shadow-large);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   FORMULAIRES
+========================= */
+form {
+  background: var(--card-bg);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-small);
+  padding: 22px 18px;
+  margin: 22px auto;
+  max-width: 600px;
+  animation: fadeIn 0.4s ease-out;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 13px 14px;
+  margin: 10px 0 18px;
+  border: 1.5px solid var(--border-default);
+  border-radius: 10px;
+  font-size: 1em;
+  background: var(--input-bg);
+  transition: border var(--transition-fast), box-shadow var(--transition-fast);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--border-focus);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.2);
+}
+
+/* =========================
+   FICHE CLIENT
+========================= */
+.client-detail-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  padding: 24px 20px;
+  margin: 28px auto;
+  max-width: 600px;
+  animation: fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  border: 1px solid #e6eaf1;
+}
+.client-detail-card h2 {
+  font-size: 1.4rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 0;
+  letter-spacing: 0.02em;
+}
+.client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.client-info h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--accent-primary);
+  text-align: center;
+}
+.client-info p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  margin: 0;
+  color: #444;
+}
+.client-info .icon {
+  font-size: 1.2em;
+  color: #8a94a6;
+}
+.client-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.client-actions button {
+  font-weight: 600;
+  font-size: 1.05em;
+  border-radius: 12px;
+}
+
+/* =========================
+   CONTENEURS
+========================= */
+#contenu, #listClient, #listVehicules, #listeTravaux, #listePieces {
+  padding: 14px 10px;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 600px) {
+  body {
+    font-size: 1.08em;
+  }
+  .client-card, .vehicule-card, .travail-card, .piece-card, form {
+    padding: 16px 12px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  button, .nav-button {
+    font-size: 1.14em;
+    padding: 15px 0;
+  }
+  h2, h3 {
+    text-align: center;
+  }
+  .client-info p {
+    font-size: 0.95rem;
+  }
+  .client-info .icon {
+    font-size: 1rem;
+  }
+}
+
+/* =========================
+   DARK MODE
+========================= */
+
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-main: #0f1216;
+    --text-main: #f2f2f2;
+    --text-title: #ffffff;
+    --card-bg: #1a1e23;
+    --input-bg: #1f2329;
+    --border-default: #2c2f36;
+    --shadow-small: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .danger-button {
+    background: #ff4f6d;
+    color: white;
+  }
+
+  button:hover {
+    filter: brightness(1.1);
+  }
+
+  nav, form, .client-detail-card {
+    border: 1px solid #2c2f36;
+  }
+}

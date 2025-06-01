@@ -158,3 +158,110 @@ public function save() {
         return $stmt->execute([$id]);
     }
 }
+
+
+class Travaux {
+    private $db;
+    private $clientId;
+    private $vehiculeId;
+    private $description;
+
+    public function __construct($db, $clientId = null, $vehiculeId = null, $description = null) {
+        $this->db = $db;
+        $this->clientId = $clientId;
+        $this->vehiculeId = $vehiculeId;
+        $this->description = $description;
+    }
+
+    // 🔹 Démarrer un nouveau travail (date_debut maintenant)
+    public function demarrerTravail() {
+        $stmt = $this->db->prepare("
+            INSERT INTO travaux (client_id, vehicule_id, description, date_debut, statut)
+            VALUES (?, ?, ?, NOW(), 'en cours')
+        ");
+        return $stmt->execute([$this->clientId, $this->vehiculeId, $this->description]);
+    }
+
+    // 🔹 Ajouter un travail rétroactif (non démarré en temps réel)
+    public function ajouterTravail() {
+        $stmt = $this->db->prepare("
+            INSERT INTO travaux (client_id, vehicule_id, description, statut)
+            VALUES (?, ?, ?, 'ajouté')
+        ");
+        return $stmt->execute([$this->clientId, $this->vehiculeId, $this->description]);
+    }
+
+    // 🔴 Terminer un travail : calcule durée, coût, total
+    public function terminerTravail($id, $coutPieces = 0) {
+        // Récupération date_debut
+        $stmt = $this->db->prepare("SELECT date_debut FROM travaux WHERE id = ? AND statut = 'en cours'");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+
+        if (!$row || !$row['date_debut']) {
+            return false;
+        }
+
+        // Calcul de la durée
+        $dateDebut = new DateTime($row['date_debut']);
+        $dateFin = new DateTime();
+        $interval = $dateDebut->diff($dateFin);
+        $duree = $interval->h + ($interval->i / 60); // Ex: 1h30 → 1.5
+
+        // Récupérer taux horaire depuis parametres
+        $res = $this->db->query("SELECT taux_horaire FROM parametres WHERE id = 1");
+        $taux = $res->fetchColumn();
+        if (!$taux) $taux = 50;
+
+        // Calcul
+        $coutMainOeuvre = $duree * $taux;
+        $total = $coutMainOeuvre + $coutPieces;
+
+        // Update travaux
+        $update = $this->db->prepare("
+            UPDATE travaux
+            SET date_fin = NOW(),
+                duree = ?,
+                cout_main_oeuvre = ?,
+                cout_pieces = ?,
+                total = ?,
+                statut = 'terminé'
+            WHERE id = ?
+        ");
+        return $update->execute([$duree, $coutMainOeuvre, $coutPieces, $total, $id]);
+    }
+
+    // 📄 Obtenir tous les travaux d’un véhicule
+    public function getTravauxVehicule($vehiculeId) {
+        $stmt = $this->db->prepare("
+            SELECT * FROM travaux
+            WHERE vehicule_id = ?
+            ORDER BY date_debut DESC
+        ");
+        $stmt->execute([$vehiculeId]);
+        return $stmt->fetchAll();
+    }
+
+    // 📄 Obtenir les détails d’un travail
+    public function getTravail($id) {
+        $stmt = $this->db->prepare("SELECT * FROM travaux WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
+    // 🧾 Lister les pièces d’un travail
+    public function getPieces($travailId) {
+        $stmt = $this->db->prepare("SELECT * FROM pieces WHERE travail_id = ?");
+        $stmt->execute([$travailId]);
+        return $stmt->fetchAll();
+    }
+
+    // ➕ Ajouter une pièce à un travail
+    public function ajouterPiece($travailId, $nom, $prix) {
+        $stmt = $this->db->prepare("
+            INSERT INTO pieces (travail_id, nom_piece, prix)
+            VALUES (?, ?, ?)
+        ");
+        return $stmt->execute([$travailId, $nom, $prix]);
+    }
+}

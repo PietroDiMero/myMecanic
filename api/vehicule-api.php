@@ -4,6 +4,14 @@ require_once 'class/class.php';
 
 header('Content-Type: application/json');
 
+if (isset($_GET['client_id_from_vehicule'])) {
+    $stmt = $pdo->prepare("SELECT client_id FROM vehicules WHERE id = ?");
+    $stmt->execute([$_GET['client_id_from_vehicule']]);
+    $client_id = $stmt->fetchColumn();
+    echo json_encode(['client_id' => $client_id]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Vérification des champs requis
     if (
