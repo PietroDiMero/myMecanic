@@ -52,7 +52,9 @@ if (fichierBase === "addPiece.html" && params) {
     initPiece(travailId); // 🔧 Lancement de l’init
   }
 }
-
+if (fichierBase === "home.html" || fichierBase === "dashboard.html") {
+  afficherCalendrierTravaux(); // 📅 Appelle ta fonction pour afficher le calendrier
+}
 
     })
     .catch(err => {
@@ -112,7 +114,7 @@ function chargerFicheClient(id) {
       }
 
       if (!client || client.error) {
-        zone.innerHTML = `<p>Client introuvable.</p>`;
+        showToast('Client introuvable');
         return;
       }
 
@@ -143,24 +145,26 @@ zone.innerHTML = `
 }
 
 function supprimerClient(id) {
-  if (!confirm("Voulez-vous vraiment supprimer ce client ?")) return; // ✅ Confirmation
+  confirmDialog("Voulez vous vraiment supprimer ce client ?").then(confirm => {
+  if (!confirm) return;
+
 
   fetch(`/api/supprimer-client.php?id=${id}`, {
     method: "DELETE" // ❌ Supprime via API
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message); // 💬 Message retour
+         
       if (data.success) {
         chargerPage("clients.html"); // 🔄 Recharge la liste
+        showToast(data.message);
       }
     })
     .catch(err => {
       alert("Erreur API suppression.");
       console.error("Erreur API suppression :", err);
-    });
+    });})
 }
-
 
 
 function afficherVehiculesClient(clientId) {
@@ -171,22 +175,23 @@ function afficherVehiculesClient(clientId) {
     return;
   }
 
-  fetch(`/api/vehicule-api.php?client_id=${clientId}`) // 🔄 Appel API pour les véhicules
+  fetch(`/api/vehicule-api.php?client_id=${clientId}`)
     .then(res => res.json())
     .then(vehicules => {
       if (!Array.isArray(vehicules) || vehicules.length === 0) {
+        showToast('Aucun véhicule trouvé pour le client');
         zone.innerHTML = "<p>Aucun véhicule trouvé pour ce client.</p>";
         return;
       }
 
-      zone.innerHTML = ""; // 🔄 Vide avant affichage
+      zone.innerHTML = "";
       vehicules.forEach(v => {
-        const div = document.createElement("div"); // 📦 Carte véhicule
+        const div = document.createElement("div");
         div.className = "vehicule-card";
         div.innerHTML = `
           <strong>${v.marque} ${v.modele}</strong> - ${v.immatriculation}<br>
-          Année : ${v.annee} 
-          <button onclick="chargerPage('travaux.html?vehicule=${v.id}')"> Réparation </button>
+          Année : ${v.annee}
+          <button onclick="chargerPage('travaux.html?vehicule=${v.id}')">Réparation</button>
         `;
         zone.appendChild(div);
       });
@@ -342,24 +347,26 @@ function afficherTravauxVehicule(vehiculeId) {
 
 
 function supprimerTravail(travauxId, vehiculeId) {
-  if (!confirm("Voulez-vous vraiment supprimer ce travail ?")) return;
+ confirmDialog("Voulez vous vraiment supprimer ce travail ?").then(confirm => {
+  if (!confirm) return;
 
   fetch(`/api/travaux-api.php?travaux_id=${travauxId}`, {
     method: "DELETE"
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message);
+       showToast(data.message);
       if (data.success) {
         // Recharge la liste après suppression
         // Il faut connaître le vehiculeId courant ici !
         afficherTravauxVehicule(vehiculeId);
+        showToast(data.message);
       }
     })
     .catch(err => {
-      alert("Erreur lors de la suppression.");
+      showToast("Erreur lors de la suppression.");
       console.error("Erreur API suppression travail :", err);
-    });
+    });})
 }
 
 function finaliserTravail(id) {
@@ -372,9 +379,10 @@ function finaliserTravail(id) {
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message);
+       showToast(data.message);
       if (data.success) {
         afficherTravauxVehicule(document.getElementById("vehicule_id").value);
+         showToast(data.message);
       }
     })
     .catch(err => {
@@ -393,9 +401,10 @@ function demarrerTravail(travailId) {
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message);
+       showToast(data.message);
       if (data.success) {
         afficherTravauxVehicule(document.getElementById("vehicule_id").value);
+         showToast(data.message);
       }
     })
     .catch(err => {
@@ -410,9 +419,10 @@ function pauseTravail(id) {
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message);
+       showToast(data.message);
       if (data.success) {
         afficherTravauxVehicule(document.getElementById("vehicule_id").value);
+         showToast(data.message);
       }
     })
     .catch(err => {
@@ -426,9 +436,10 @@ function reprendreTravail(id) {
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message);
+       showToast(data.message);
       if (data.success) {
         afficherTravauxVehicule(document.getElementById("vehicule_id").value);
+         showToast(data.message);
       }
     })
     .catch(err => {
@@ -461,13 +472,13 @@ function initPiece(travauxId) {
     })
       .then(res => res.json())
       .then(data => {
-        message.textContent = data.message;
-        message.style.color = data.success ? 'green' : 'red';
+        
 
         if (data.success) {
           form.reset();
           hiddenInput.value = travauxId; // Réinjecte après reset
           afficherPiece(travauxId);
+           showToast(data.message);
         }
       })
       .catch(err => {
@@ -518,21 +529,24 @@ function afficherPiece(travauxId) {
 }
 
 function supprimerPiece(pieceId, travauxId) {
-  if (!confirm("Supprimer cette pièce ?")) return;
+  confirmDialog("Voulez vous vraiment supprimer cette pièce ?").then(confirm=>{
+if (!confirm) return;
+  
 
   fetch(`/api/piece-api.php?piece_id=${pieceId}`, {
     method: "DELETE"
   })
     .then(res => res.json())
     .then(data => {
-      alert(data.message);
+       showToast(data.message);
       if (data.success) {
-        afficherPiece(travauxId); // 🔄 recharge la liste
+        afficherPiece(travauxId); 
+         showToast(data.message);
       }
     })
     .catch(err => {
       console.error("Erreur suppression pièce :", err);
-    });
+    });})
 }
 
 function toggleMenu(force) {
@@ -552,6 +566,11 @@ function toggleMenu(force) {
 
 function showToast(message, duration = 3000) {
   const toast = document.getElementById('toast');
+  if (!toast) {
+    console.warn("⚠️ Élément #toast introuvable dans le DOM !");
+    return;
+  }
+
   toast.textContent = message;
   toast.classList.add('show');
 
@@ -561,3 +580,117 @@ function showToast(message, duration = 3000) {
 }
 
 
+function confirmDialog(message) {
+  return new Promise(resolve => {
+    const box = document.getElementById("confirmBox");
+    const msg = document.getElementById("confirmMessage");
+    const yes = document.getElementById("btnYes");
+    const no = document.getElementById("btnNo");
+
+    msg.textContent = message;
+    box.classList.remove("hidden");
+
+    const cleanUp = () => {
+      box.classList.add("hidden");
+      yes.removeEventListener("click", onYes);
+      no.removeEventListener("click", onNo);
+    };
+
+    const onYes = () => { cleanUp(); resolve(true); };
+    const onNo  = () => { cleanUp(); resolve(false); };
+
+    yes.addEventListener("click", onYes);
+    no.addEventListener("click", onNo);
+  });
+}
+function afficherCalendrierTravaux() {
+  fetch('/api/travaux-api.php?planning=1')
+    .then(res => res.json())
+    .then(travaux => {
+      
+
+      if (!Array.isArray(travaux)) {
+        console.error("⛔ Format inattendu pour les travaux :", travaux);
+        return;
+      }
+
+      // Helpers
+      function dateStr(date) {
+        return new Date(date).toLocaleDateString('fr-CA'); // YYYY-MM-DD
+      }
+
+      const aujourdHui = new Date();
+      const demain = new Date();
+      demain.setDate(aujourdHui.getDate() + 1);
+
+      const todayStr = aujourdHui.toLocaleDateString('fr-CA');
+      const tomorrowStr = demain.toLocaleDateString('fr-CA');
+
+const zoneToday = document.querySelector("#sliderAujourdHui");
+const zoneTomorrow = document.querySelector("#sliderDemain");
+
+
+      if (!zoneToday || !zoneTomorrow) {
+        console.warn("🛑 Zones calendrier introuvables !");
+        return;
+      }
+
+      zoneToday.innerHTML = "";
+      zoneTomorrow.innerHTML = "";
+
+      travaux.forEach(t => {
+        const tDateStr = dateStr(t.date_travail);
+
+        const div = document.createElement("div");
+        div.className = "travail-card";
+div.innerHTML = `
+  <div class="travail-header">
+    <strong>${t.description}</strong>
+    <div class="travail-heure">🕒 ${new Date(t.date_travail).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+  </div>
+<div class="travail-body">
+  <p><strong>👤 Client :</strong> ${t.prenom} ${t.nom}</p>
+<p>
+  <strong>📞 Téléphone :</strong>
+  <span class="phone-value">${t.telephone}</span>
+  <button class="copy-btn" onclick="copyToClipboard('${t.telephone}')">📋</button>
+  <button class="add-travail-btn" onclick="chargerPage('travaux.html?vehicule=${t.vehicule_id}')">➕</button>
+</p>
+
+
+  <p><strong>🚗 Véhicule :</strong> ${t.marque} ${t.modele}</p>
+</div>
+
+`;
+
+        if (tDateStr === todayStr) {
+          zoneToday.appendChild(div);
+        } else if (tDateStr === tomorrowStr) {
+          zoneTomorrow.appendChild(div);
+        }
+      });
+
+    })
+    .catch(err => {
+      console.error("⛔ Erreur chargement calendrier :", err);
+    });
+}
+
+
+
+
+function slideTravaux(jour, direction) {
+  const slider = document.getElementById(`slider${jour.charAt(0).toUpperCase() + jour.slice(1)}`);
+  const cardWidth = 260; // ≈ largeur + margin
+  slider.scrollLeft += direction * cardWidth;
+}
+
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("📞 Numéro copié !");
+  }).catch(err => {
+    console.error("Erreur copie :", err);
+    showToast("❌ Échec de la copie");
+  });
+}

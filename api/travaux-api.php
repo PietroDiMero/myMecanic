@@ -4,6 +4,33 @@ header('Content-Type: application/json');
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['planning'])) {
+    try {
+        $today = date('Y-m-d');
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+
+$stmt = $pdo->prepare("
+    SELECT t.*, c.nom, c.prenom,c.telephone, v.marque, v.modele
+    FROM travaux t
+    JOIN clients c ON c.id = t.client_id
+    JOIN vehicules v ON v.id = t.vehicule_id
+    WHERE DATE(t.date_travail) IN (?, ?)
+    ORDER BY t.date_travail ASC
+");
+
+$stmt->execute([$today, $tomorrow]); // ✅ cette fois, 2 dates ⇒ 2 paramètres
+
+
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        exit;
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Erreur BDD', 'error' => $e->getMessage()]);
+        exit;
+    }
+}
+
+
 // === Convertir un rendez-vous en travail ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'from_rdv') {
     $rdv_id = $_POST['id'] ?? null;

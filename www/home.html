@@ -1,0 +1,25 @@
+<div id="calendrierTravaux">
+  <h2>📅 Travaux à venir</h2>
+
+  <div class="cal-day">
+    <h3>Aujourd'hui</h3>
+    <div class="cal-slider">
+      <button class="nav-arrow" onclick="slideTravaux('aujourdHui', -1)">←</button>
+      <div class="slider" id="sliderAujourdHui"></div>
+      <button class="nav-arrow" onclick="slideTravaux('aujourdHui', 1)">→</button>
+    </div>
+  </div>
+
+  <div class="cal-day">
+    <h3>Demain</h3>
+    <div class="cal-slider">
+      <button class="nav-arrow" onclick="slideTravaux('demain', -1)">←</button>
+      <div class="slider" id="sliderDemain"></div>
+      <button class="nav-arrow" onclick="slideTravaux('demain', 1)">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  afficherCalendrierTravaux(); // 🟢 Appel automatique
+</script>
