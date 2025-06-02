@@ -153,6 +153,11 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
                 $pdo->commit();
                 break;
+                case 'regler':
+             $stmt = $pdo->prepare("UPDATE travaux SET statut = 'reglé' WHERE id = ?");
+             $stmt->execute([$travailId]);
+            echo json_encode(['success' => true]);
+            exit;
 
             default:
                 echo json_encode(['success' => false, 'message' => 'Action inconnue']);

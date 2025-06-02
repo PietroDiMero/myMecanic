@@ -1,0 +1,23 @@
+<h2>➕ Ajouter un travail</h2>
+
+<form id="formTravailGlobal">
+  <label for="clientSelect">👤 Client :</label>
+  <select id="clientSelect" required>
+    <option value="">-- Sélectionner un client --</option>
+  </select>
+
+  <label for="vehiculeSelect">🚗 Véhicule :</label>
+  <select id="vehiculeSelect" required>
+    <option value="">-- Sélectionner un véhicule --</option>
+  </select>
+
+  <label for="description">🛠️ Description :</label>
+  <input type="text" name="description" id="description" required>
+
+  <input type="hidden" name="vehicule_id" id="vehicule_id">
+  <input type="hidden" name="client_id" id="client_id">
+
+  <button type="submit">💾 Enregistrer</button>
+</form>
+
+<div id="messageTravail"></div>

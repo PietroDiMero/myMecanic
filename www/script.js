@@ -1,4 +1,4 @@
-function chargerPage(fichier) {
+function chargerPage(fichier, push = true) {
   const target = document.getElementById("contenu");
 
   if (!target) {
@@ -13,6 +13,12 @@ function chargerPage(fichier) {
     .then(html => {
       target.innerHTML = html;
 
+      // 🔁 Met à jour l'historique si demandé
+      if (push) {
+        history.pushState({ fichier }, "", "#" + fichier);
+      }
+
+      // === ROUTING LOGIC ===
       if (fichierBase === "listClients.html") {
         afficherClients();
       }
@@ -33,28 +39,43 @@ function chargerPage(fichier) {
         initVehiculeForm(clientId);
       }
 
-      // ✅ Le bloc à AJOUTER pour travaux.html
       if (fichierBase === "travaux.html") {
         const urlParams = new URLSearchParams(params);
         const vehiculeId = urlParams.get("vehicule");
 
         if (vehiculeId) {
-          initFormulaireTravaux(vehiculeId);      // charge le formulaire
-          afficherTravauxVehicule(vehiculeId);     // si tu veux aussi afficher la liste
+          initFormulaireTravaux(vehiculeId);
+          afficherTravauxVehicule(vehiculeId);
         }
       }
 
-if (fichierBase === "addPiece.html" && params) {
-  const urlParams = new URLSearchParams(params);
-  const travailId = urlParams.get("id");
-  if (travailId) {
-    afficherPiece(travailId);
-    initPiece(travailId); // 🔧 Lancement de l’init
+      if (fichierBase === "addPiece.html" && params) {
+        const urlParams = new URLSearchParams(params);
+        const travailId = urlParams.get("id");
+        if (travailId) {
+          afficherPiece(travailId);
+          initPiece(travailId);
+        }
+      }
+
+      if (fichierBase === "home.html" || fichierBase === "dashboard.html") {
+        afficherCalendrierTravaux();
+      }
+      if (fichierBase === "recettes.html") {
+  afficherRecettes();
   }
+if (fichierBase === "stats.html") {
+  setTimeout(initStatsPage, 0);
 }
-if (fichierBase === "home.html" || fichierBase === "dashboard.html") {
-  afficherCalendrierTravaux(); // 📅 Appelle ta fonction pour afficher le calendrier
+
+if (fichierBase === "ajouterTravail.html") {
+  initAjouterTravailPage();
 }
+
+
+
+
+
 
     })
     .catch(err => {
@@ -65,41 +86,44 @@ if (fichierBase === "home.html" || fichierBase === "dashboard.html") {
 
 
 
-
 function afficherClients() {
-  fetch("/api/client-api.php") // 🔄 Appel à l'API pour récupérer tous les clients
-    .then(res => res.json()) // 📦 Convertit la réponse en JSON
+  fetch('/api/client-api.php')
+    .then(res => res.json())
     .then(clients => {
-      if (!Array.isArray(clients)) {
-        console.error("❌ Ce n’est pas une liste de clients :", clients);
-        return;
-      }
+      const zone = document.getElementById("clientListe");
+      if (!zone) return;
 
-      const listClient = document.getElementById("listClient"); // 📍 Récupère la div qui contiendra la liste
-
-      if (!listClient) {
-        console.error("⚠️ #listClient introuvable dans le DOM");
-        return;
-      }
-
-      listClient.innerHTML = ""; // 🔄 Vide la liste existante
+      zone.innerHTML = "";
 
       clients.forEach(client => {
-        const div = document.createElement("div"); // 📦 Crée une carte pour chaque client
+        const div = document.createElement("div");
         div.className = "client-card";
-        div.innerHTML = `
-          <strong>${client.prenom} ${client.nom}</strong> - ${client.telephone}
-          <br>
-          <button onclick="chargerPage('ficheClient.html?id=${client.id}')">Voir la fiche</button>
-        `;
-        listClient.appendChild(div); // 📌 Ajoute à la liste
+        div.dataset.nom = (client.nom + " " + client.prenom).toLowerCase();
+      div.innerHTML = `
+  <strong>${client.nom} ${client.prenom}</strong><br>
+  Téléphone : ${client.telephone}<br>
+  <button onclick="chargerPage('ficheClient.html?id=${client.id}')" class="btn-detail">📄 Voir fiche</button>
+`;
+
+        zone.appendChild(div);
       });
+
+      // 🔍 Recherche dynamique
+      const input = document.getElementById("searchClient");
+      if (input) {
+        input.addEventListener("input", () => {
+          const q = input.value.toLowerCase();
+          document.querySelectorAll(".client-card").forEach(card => {
+            card.style.display = card.dataset.nom.includes(q) ? "block" : "none";
+          });
+        });
+      }
     })
     .catch(err => {
-      console.error("Erreur lors de l'affichage des clients :", err);
-      document.getElementById("listClient").innerHTML = "<p>Erreur de chargement</p>";
+      console.error("⛔ Erreur chargement clients :", err);
     });
 }
+
 
 
 function chargerFicheClient(id) {
@@ -692,5 +716,279 @@ function copyToClipboard(text) {
   }).catch(err => {
     console.error("Erreur copie :", err);
     showToast("❌ Échec de la copie");
+  });
+}
+
+
+function login(e) {
+  e.preventDefault();
+
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  const formData = new FormData();
+  formData.append("username", username);
+  formData.append("password", password);
+
+  fetch("/api/auth.php", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+.then(data => {
+  if (data.success && data.redirect) {
+    showToast("✅ Connexion réussie !");
+    window.location.href = data.redirect; // ⬅️ redirection propre
+  } else {
+    showToast("❌ " + (data.message || "Erreur inconnue"));
+  }
+})
+
+    .catch(err => {
+      console.error("Erreur réseau :", err);
+      showToast("⚠️ Serveur injoignable !");
+    });
+}
+
+window.addEventListener("popstate", (event) => {
+  if (event.state && event.state.fichier) {
+    chargerPage(event.state.fichier, false); // 🔁 Ne push pas à nouveau
+  }
+});
+
+function retourArriere() {
+  window.history.back(); // ← va dans l'historique du navigateur
+}
+
+function afficherRecettes() {
+  fetch('/api/recettes-api.php')
+    .then(res => res.json())
+    .then(data => {
+      const zone = document.querySelector(".recette-liste");
+      if (!zone) return;
+
+      zone.innerHTML = "";
+
+      if (!Array.isArray(data) || data.length === 0) {
+        zone.innerHTML = "<p>Aucune recette à afficher.</p>";
+        return;
+      }
+
+      data.forEach(recette => {
+        const total = parseFloat(recette.total || 0).toFixed(2); // 💸 Sécurisé
+
+        const div = document.createElement("div");
+        div.className = "recette-card";
+        div.innerHTML = `
+          <strong>${recette.description}</strong><br>
+          Client : ${recette.prenom} ${recette.nom}<br>
+          Date : ${new Date(recette.date_travail).toLocaleDateString()}<br>
+          Montant : <strong>${total} €</strong><br>
+          <button onclick="reglerTravail(${recette.id})" class="btn-regler">✅ Régler</button>
+        `;
+
+        zone.appendChild(div);
+      });
+    })
+    .catch(err => {
+      console.error("⛔ Erreur chargement recettes :", err);
+    });
+}
+
+
+
+
+function reglerTravail(travailId) {
+ confirmDialog("Valider le paiement du client").then(confirm=>{
+if (!confirm) return;
+
+  fetch('/api/travaux-api.php?action=regler', {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: `id=${travailId}`
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        showToast("💸 Travail marqué comme réglé !");
+        afficherRecettes(); // Refresh
+      } else {
+        showToast("❌ " + (data.message || "Erreur lors du règlement"));
+      }
+    })
+    .catch(err => {
+      console.error("⛔ Erreur réseau :", err);
+      showToast("⚠️ Erreur serveur");
+    });})
+}
+
+function initStatsPage() {
+  const select = document.getElementById("moisSelect");
+
+  fetch('/api/mois-disponibles.php')
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && Array.isArray(data.mois)) {
+        select.innerHTML = `<option value="">Tous</option>`;
+        data.mois.forEach(m => {
+          const label = new Date(m + "-01").toLocaleDateString("fr-FR", {
+            year: "numeric", month: "long"
+          });
+          select.innerHTML += `<option value="${m}">${label}</option>`;
+        });
+      }
+    });
+
+  // 🔁 À chaque changement de mois
+  select.addEventListener("change", () => {
+    afficherStats(select.value);
+  });
+
+  afficherStats(); // Chargement initial
+}
+
+
+function afficherStats(mois = "") {
+  let url = '/api/stats-api.php';
+
+  if (mois) {
+    url += `?periode=mois&mois=${encodeURIComponent(mois)}`;
+  }
+
+  fetch(url)
+    .then(res => res.json())
+    .then(stats => {
+      const zone = document.getElementById("statsZone");
+      if (!zone) return;
+
+      zone.innerHTML = `
+        <p>🕐 Total heures travaillées : <strong>${(parseFloat(stats.total_heures || 0)).toFixed(1)} h</strong></p>
+        <p>✅ Montant réglé : <strong>${(parseFloat(stats.total || 0)).toFixed(2)} €</strong></p>
+        <p>🧾 Montant à encaisser : <strong>${(parseFloat(stats.total_prevu || 0)).toFixed(2)} €</strong></p>
+      `;
+
+      if (stats.par_mois) {
+        updateGraph(stats.par_mois);
+      }
+    })
+    .catch(err => {
+      console.error("⛔ Erreur chargement stats :", err);
+    });
+}
+
+
+let statsChart = null;
+
+
+let graph; // scope global
+
+function updateGraph(data) {
+  const canvas = document.getElementById("graphStats");
+  if (!canvas) {
+    console.warn("📊 Le canvas #graphStats est introuvable !");
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+
+  const labels = Object.keys(data);
+  const values = Object.values(data);
+
+  if (graph) graph.destroy(); // 🔄 évite doublons
+
+  graph = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '€ par mois',
+        data: values,
+        backgroundColor: 'rgba(33, 150, 243, 0.6)',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+
+
+function initAjouterTravailPage() {
+  const clientSelect = document.getElementById("clientSelect");
+  const vehiculeSelect = document.getElementById("vehiculeSelect");
+  const vehiculeInput = document.getElementById("vehicule_id");
+  const form = document.getElementById("formTravailGlobal");
+  const message = document.getElementById("messageTravail");
+
+  // 🔄 Charger tous les clients
+  fetch('/api/client-api.php')
+    .then(res => res.json())
+    .then(clients => {
+      clientSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+      clients.forEach(client => {
+        clientSelect.innerHTML += `<option value="${client.id}">${client.nom} ${client.prenom}</option>`;
+      });
+    });
+
+  // 🧲 Quand on change de client, on charge ses véhicules
+clientSelect.addEventListener("change", () => {
+  const clientId = clientSelect.value;
+
+  // ✅ Injecte dans le champ caché
+  document.getElementById("client_id").value = clientId;
+
+  vehiculeSelect.innerHTML = '<option value="">Chargement...</option>';
+  vehiculeInput.value = "";
+
+  fetch(`/api/vehicule-api.php?client_id=${clientId}`)
+    .then(res => res.json())
+    .then(vehicules => {
+      vehiculeSelect.innerHTML = '<option value="">-- Sélectionner un véhicule --</option>';
+      vehicules.forEach(v => {
+        vehiculeSelect.innerHTML += `<option value="${v.id}">${v.marque} ${v.modele} (${v.immatriculation})</option>`;
+      });
+
+      if (vehicules.length > 0) {
+        vehiculeSelect.value = vehicules[0].id;
+        vehiculeInput.value = vehicules[0].id;
+      }
+    });
+});
+
+
+  // 🔁 Quand on sélectionne un véhicule
+  vehiculeSelect.addEventListener("change", () => {
+    vehiculeInput.value = vehiculeSelect.value;
+  });
+
+  // 📤 Soumission
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    fetch('/api/ajout-travail-api.php', {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        message.textContent = data.message;
+        message.style.color = data.success ? "green" : "red";
+        if (data.success) {
+          form.reset();
+          vehiculeInput.value = "";
+        }
+      })
+      .catch(err => {
+        message.textContent = "Erreur serveur 🔥";
+        console.error("❌ Erreur API ajout travail :", err);
+      });
   });
 }
