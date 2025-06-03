@@ -17,6 +17,7 @@
   <button onclick="chargerPage('clients.html'); toggleMenu(false)">➕ Ajouter des clients</button>
   <button onclick="chargerPage('listClients.html'); toggleMenu(false)">👥 Voir mes clients</button>
   <button onclick="chargerPage('ajouterTravail.html'); toggleMenu(false)">➕ Nouveau Travail</button>
+<button onclick="chargerPage('forfaits.html'); toggleMenu(false)">📦 Gérer les forfaits</button>
 
    <button onclick="chargerPage('recettes.html'); toggleMenu(false)">Montant à payer</button>
    <button onclick="chargerPage('stats.html'); toggleMenu(false)">📊 Statistiques</button>
@@ -138,6 +139,18 @@
     color: white;
   }
 </style>
+<!-- ✅ Modale taux horaire ou finalisation par forfait -->
+<div id="modalTaux" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>⏱ Taux horaire ou Forfait</h3>
+    <input type="number" id="inputTaux" placeholder="Taux horaire (€)" style="width: 100%; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: center; gap: 10px;">
+      <button id="btnDemarrerTravail" class="confirm-btn-yes">▶️ Démarrer</button>
+      <button id="btnFinaliserDirect" class="confirm-btn-yes" style="background: green;">✅ Finaliser (forfait)</button>
+      <button onclick="fermerModalTaux()" class="confirm-btn-no">❌ Annuler</button>
+    </div>
+  </div>
+</div>
 
 
         <script src="script.js"></script>

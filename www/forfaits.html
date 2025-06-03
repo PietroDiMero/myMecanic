@@ -1,0 +1,16 @@
+<h2>📦 Gérer les forfaits</h2>
+
+<form id="formForfait">
+  <input type="text" name="nom" placeholder="Nom du forfait" required>
+  <input type="number" name="prix" placeholder="Prix €" required step="0.01" min="0">
+  <button type="submit">➕ Ajouter</button>
+</form>
+
+<div id="messageForfait"></div>
+
+<table id="forfaitTable">
+  <thead>
+    <tr><th>Nom</th><th>Prix</th><th>Action</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>

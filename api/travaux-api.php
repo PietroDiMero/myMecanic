@@ -88,14 +88,27 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     try {
         switch ($action) {
             case 'demarrer':
-                $stmt = $pdo->prepare("UPDATE travaux SET date_debut = NOW(), statut = 'en cours' WHERE id = ?");
-                $stmt->execute([$travailId]);
+               $taux = $_POST['taux'] ?? null;
+$stmt = $pdo->prepare("UPDATE travaux SET date_debut = NOW(), statut = 'en cours', taux_horaire = ? WHERE id = ?");
+$stmt->execute([$taux, $travailId]);
                 break;
 
             case 'pause':
                 $stmt = $pdo->prepare("INSERT INTO pauses (travail_id, debut_pause) VALUES (?, NOW())");
                 $stmt->execute([$travailId]);
                 break;
+
+                case 'ajouter_forfait':
+    $forfait_id = $_POST['forfait_id'] ?? null;
+    if (!$forfait_id) {
+        echo json_encode(['success' => false, 'message' => 'Forfait ID manquant.']);
+        exit;
+    }
+    $stmt = $pdo->prepare("UPDATE travaux SET forfait_id = ? WHERE id = ?");
+    $stmt->execute([$forfait_id, $travailId]);
+    echo json_encode(['success' => true, 'message' => 'Forfait ajouté au travail.']);
+    exit;
+
 
             case 'reprendre':
                 $pdo->beginTransaction();
@@ -109,50 +122,68 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 $pdo->commit();
                 break;
 
-            case 'finaliser':
-                $pdo->beginTransaction();
+ case 'finaliser':
+    try {
+        $pdo->beginTransaction();
 
-                // Clôturer le travail
-                $pdo->prepare("UPDATE travaux SET date_fin = NOW(), statut = 'terminé' WHERE id = ?")->execute([$travailId]);
+        // ⏱️ Clôturer le travail
+        $pdo->prepare("UPDATE travaux SET date_fin = NOW(), statut = 'terminé' WHERE id = ?")->execute([$travailId]);
 
-                // Calcul durée nette
-                $stmt = $pdo->prepare("
-                    SELECT TIMESTAMPDIFF(SECOND, date_debut, date_fin) -
-                        IFNULL(SUM(TIMESTAMPDIFF(SECOND, debut_pause, fin_pause)), 0) AS duree
-                    FROM travaux
-                    LEFT JOIN pauses ON travaux.id = pauses.travail_id
-                    WHERE travaux.id = ?
-                    GROUP BY travaux.id
-                ");
-                $stmt->execute([$travailId]);
-                $seconds = $stmt->fetchColumn() ?: 0;
-                $heures = round($seconds / 3600, 2);
+        // ⏳ Calcul de la durée nette
+        $stmt = $pdo->prepare("
+            SELECT TIMESTAMPDIFF(SECOND, date_debut, date_fin) -
+                IFNULL(SUM(TIMESTAMPDIFF(SECOND, debut_pause, fin_pause)), 0) AS duree
+            FROM travaux
+            LEFT JOIN pauses ON travaux.id = pauses.travail_id
+            WHERE travaux.id = ?
+            GROUP BY travaux.id
+        ");
+        $stmt->execute([$travailId]);
+        $seconds = $stmt->fetchColumn() ?: 0;
+        $heures = round($seconds / 3600, 2);
 
-                // Calcul coût main d'œuvre
-                $taux = $pdo->query("SELECT taux_horaire FROM parametres WHERE id = 1")->fetchColumn() ?: 50;
-                $main_oeuvre = $heures * $taux;
+        // 🧮 Récupération du taux horaire
+        $stmt = $pdo->prepare("SELECT taux_horaire FROM travaux WHERE id = ?");
+        $stmt->execute([$travailId]);
+        $taux = $stmt->fetchColumn() ?: 50;
 
-                // Total pièces
-                $stmt = $pdo->prepare("SELECT SUM(prix) FROM pieces WHERE travail_id = ?");
-                $stmt->execute([$travailId]);
-                $pieces = $stmt->fetchColumn() ?: 0;
+        // ✅ Calcul du coût de main d'œuvre
+        $main_oeuvre = $heures * $taux;
 
-                $total = $main_oeuvre + $pieces;
+        // 🧾 Total pièces
+        $stmt = $pdo->prepare("SELECT SUM(prix) FROM pieces WHERE travail_id = ?");
+        $stmt->execute([$travailId]);
+        $pieces = $stmt->fetchColumn() ?: 0;
 
-                // Mettre à jour le travail
-                $stmt = $pdo->prepare("UPDATE travaux SET duree = ?, cout_main_oeuvre = ?, cout_pieces = ?, total = ? WHERE id = ?");
-                $stmt->execute([$heures, $main_oeuvre, $pieces, $total, $travailId]);
+        // 📦 Prix du forfait (s'il y en a un)
+        $stmt = $pdo->prepare("SELECT f.prix FROM forfaits f JOIN travaux t ON f.id = t.forfait_id WHERE t.id = ?");
+        $stmt->execute([$travailId]);
+        $forfait_prix = $stmt->fetchColumn() ?: 0;
 
-                // ⚠️ Mise à jour RDV si lié
-                $stmt = $pdo->prepare("SELECT rendez_vous_id FROM travaux WHERE id = ?");
-                $stmt->execute([$travailId]);
-                $rdv_id = $stmt->fetchColumn();
-                if ($rdv_id) {
-                    $pdo->prepare("UPDATE rendez_vous SET statut = 'honoré' WHERE id = ?")->execute([$rdv_id]);
-                }
+        // 💰 Total global
+        $total = $main_oeuvre + $pieces + $forfait_prix;
 
-                $pdo->commit();
-                break;
+        // 💾 Mise à jour du travail
+        $stmt = $pdo->prepare("UPDATE travaux SET duree = ?, cout_main_oeuvre = ?, cout_pieces = ?, total = ? WHERE id = ?");
+        $stmt->execute([$heures, $main_oeuvre, $pieces, $total, $travailId]);
+
+        // 🔄 Si lié à un RDV
+        $stmt = $pdo->prepare("SELECT rendez_vous_id FROM travaux WHERE id = ?");
+        $stmt->execute([$travailId]);
+        $rdv_id = $stmt->fetchColumn();
+        if ($rdv_id) {
+            $pdo->prepare("UPDATE rendez_vous SET statut = 'honoré' WHERE id = ?")->execute([$rdv_id]);
+        }
+
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => '✅ Travail finalisé avec succès.']);
+        exit;
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'message' => '💥 Erreur serveur BDD', 'error' => $e->getMessage()]);
+        exit;
+    }
+
                 case 'regler':
              $stmt = $pdo->prepare("UPDATE travaux SET statut = 'reglé' WHERE id = ?");
              $stmt->execute([$travailId]);

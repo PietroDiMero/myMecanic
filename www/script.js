@@ -71,6 +71,9 @@ if (fichierBase === "stats.html") {
 if (fichierBase === "ajouterTravail.html") {
   initAjouterTravailPage();
 }
+if (fichierBase === "forfaits.html") {
+  initForfaitPage();
+}
 
 
 
@@ -347,9 +350,12 @@ function afficherTravauxVehicule(vehiculeId) {
            <button onclick="chargerPage('addPiece.html?id=${t.id}')"> ✏️ Modifier/Ajouter une pièce </button>
             <button onclick="supprimerTravail(${t.id}, ${vehiculeId})" style="color:red;">🗑 Supprimer</button>
         `;
-     if (!t.date_debut) {
-  div.innerHTML += `<button onclick="demarrerTravail(${t.id})">▶️ Démarrer</button>`;
-} else if (t.date_debut && !t.date_fin) {
+ if (!t.date_debut && t.statut !== "terminé") {
+  div.innerHTML += `<button onclick="ouvrirModalDemarrer(${t.id}, ${vehiculeId})">▶️ Démarrer</button>`;
+}
+
+
+ else if (t.date_debut && !t.date_fin) {
   if (t.en_pause) {
     div.innerHTML += `<button onclick="reprendreTravail(${t.id})">▶️ Reprendre</button>`;
   } else {
@@ -357,9 +363,6 @@ function afficherTravauxVehicule(vehiculeId) {
     div.innerHTML += `<button onclick="finaliserTravail(${t.id})" style="color:green;">✅ Finaliser</button>`;
   }
 }
-
-
-
         zone.appendChild(div);
       });
     })
@@ -482,12 +485,10 @@ function initPiece(travauxId) {
     return;
   }
 
-  // Injecte l’ID dans le champ caché
   hiddenInput.value = travauxId;
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-
     const formData = new FormData(form);
 
     fetch('/api/piece-api.php', {
@@ -496,13 +497,11 @@ function initPiece(travauxId) {
     })
       .then(res => res.json())
       .then(data => {
-        
-
         if (data.success) {
           form.reset();
-          hiddenInput.value = travauxId; // Réinjecte après reset
+          hiddenInput.value = travauxId;
           afficherPiece(travauxId);
-           showToast(data.message);
+          showToast(data.message);
         }
       })
       .catch(err => {
@@ -511,8 +510,55 @@ function initPiece(travauxId) {
       });
   });
 
-  afficherPiece(travauxId);
+  afficherPiece(travauxId); // ✅ OBLIGATOIRE
+
+  // ⬇️ ➕ AJOUTE TON CODE ICI 👇
+  document.getElementById("forfaitSelect").addEventListener("change", e => {
+    const option = e.target.selectedOptions[0];
+    const info = document.getElementById("forfaitInfo");
+
+    if (option && option.value) {
+      info.innerHTML = `<p>✅ Forfait sélectionné : <strong>${option.textContent}</strong></p>`;
+    } else {
+      info.innerHTML = "";
+    }
+
+    const forfaitId = option.value;
+    if (forfaitId) {
+      fetch('/api/travaux-api.php?action=ajouter_forfait', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `id=${travauxId}&forfait_id=${forfaitId}`
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success) {
+            console.warn("❌ Erreur assignation forfait :", data.message);
+          } else {
+            showToast("✅ Forfait ajouté !");
+          }
+        });
+    }
+  });
+
+  // Et ici en plus, charger dynamiquement les forfaits (si tu ne l’as pas déjà fait ailleurs) :
+  fetch('/api/forfait-api.php')
+    .then(res => res.json())
+    .then(data => {
+      const select = document.getElementById("forfaitSelect");
+      if (!select) return;
+
+      data.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.id;
+        opt.textContent = `${f.nom} (${f.prix} €)`;
+        select.appendChild(opt);
+      });
+    });
 }
+
 
 
 
@@ -991,4 +1037,120 @@ clientSelect.addEventListener("change", () => {
         console.error("❌ Erreur API ajout travail :", err);
       });
   });
+  // 🔄 Charger les forfaits disponibles
+fetch("/api/forfait-api.php")
+  .then(res => res.json())
+  .then(data => {
+    const forfaitSelect = document.getElementById("forfaitSelect");
+    data.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f.id;
+      opt.textContent = `${f.nom} (${f.prix} €)`;
+      forfaitSelect.appendChild(opt);
+    });
+  });
+
 }
+
+function initForfaitPage() {
+  const form = document.getElementById("formForfait");
+  const tableBody = document.querySelector("#forfaitTable tbody");
+  const message = document.getElementById("messageForfait");
+
+  function loadForfaits() {
+    fetch('/api/forfait-api.php')
+      .then(res => res.json())
+      .then(data => {
+        tableBody.innerHTML = "";
+        data.forEach(f => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${f.nom}</td>
+            <td>${f.prix} €</td>
+            <td><button onclick="supprimerForfait(${f.id})">🗑️ Supprimer</button></td>
+          `;
+          tableBody.appendChild(row);
+        });
+      });
+  }
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    fetch('/api/forfait-api.php', {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      message.textContent = data.message;
+      message.style.color = data.success ? "green" : "red";
+      if (data.success) {
+        form.reset();
+        loadForfaits();
+      }
+    });
+  });
+
+  window.supprimerForfait = (id) => {
+    fetch('/api/forfait-api.php', {
+      method: "DELETE",
+      body: new URLSearchParams({ id })
+    })
+    .then(res => res.json())
+    .then(data => {
+      message.textContent = data.message;
+      loadForfaits();
+    });
+  }
+
+  loadForfaits();
+}
+
+
+let currentTravailId = null;
+let currentVehiculeId = null;
+
+function ouvrirModalDemarrer(id, vehiculeId) {
+  currentTravailId = id;
+  currentVehiculeId = vehiculeId;
+  document.getElementById("modalTaux").style.display = "flex";
+}
+
+function fermerModalTaux() {
+  document.getElementById("modalTaux").style.display = "none";
+  document.getElementById("inputTaux").value = "";
+}
+
+
+document.getElementById("btnDemarrerTravail").addEventListener("click", () => {
+  const taux = document.getElementById("inputTaux").value;
+  if (!taux) return alert("Veuillez entrer un taux horaire.");
+
+  fetch(`/api/travaux-api.php?action=demarrer`, {
+    method: "POST",
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `id=${currentTravailId}&taux=${taux}`
+  })
+    .then(r => r.json())
+    .then(data => {
+      fermerModalTaux();
+      afficherTravauxVehicule(currentVehiculeId);
+      showToast(data.message || "Travail démarré.");
+    });
+});
+
+document.getElementById("btnFinaliserDirect").addEventListener("click", () => {
+  fetch(`/api/travaux-api.php?action=finaliser`, {
+    method: "POST",
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `id=${currentTravailId}`
+  })
+    .then(r => r.json())
+    .then(data => {
+      fermerModalTaux();
+      afficherTravauxVehicule(currentVehiculeId);
+      showToast(data.message || "Travail finalisé.");
+    });
+});
