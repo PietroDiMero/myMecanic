@@ -13,7 +13,7 @@ try {
             SELECT 
               ROUND(SUM(TIMESTAMPDIFF(MINUTE, date_debut, date_fin)) / 60, 2) AS total_heures,
               ROUND(SUM(total), 2) AS total,
-              ROUND(SUM(CASE WHEN statut = 'regler' THEN total ELSE 0 END), 2) AS total_regle,
+              ROUND(SUM(CASE WHEN statut = 'reglé' THEN total ELSE 0 END), 2) AS total_regle,
               ROUND(SUM(CASE WHEN statut = 'termine' THEN total ELSE 0 END), 2) AS total_prevu
             FROM travaux
             WHERE DATE_FORMAT(date_travail, '%Y-%m') = ?
@@ -25,7 +25,7 @@ try {
             SELECT 
               ROUND(SUM(TIMESTAMPDIFF(MINUTE, date_debut, date_fin)) / 60, 2) AS total_heures,
               ROUND(SUM(total), 2) AS total,
-              ROUND(SUM(CASE WHEN statut = 'regler' THEN total ELSE 0 END), 2) AS total_regle,
+              ROUND(SUM(CASE WHEN statut = 'reglé' THEN total ELSE 0 END), 2) AS total_regle,
               ROUND(SUM(CASE WHEN statut = 'termine' THEN total ELSE 0 END), 2) AS total_prevu
             FROM travaux
         ");

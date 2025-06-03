@@ -75,9 +75,26 @@ if (fichierBase === "forfaits.html") {
   initForfaitPage();
 }
 
+if (fichierBase === "historiqueTravaux.html" && params) {
+  const urlParams = new URLSearchParams(params);
+  const vehiculeId = urlParams.get("vehicule");
+  if (vehiculeId) {
+    afficherHistoriqueTravaux(vehiculeId);
+
+    // ✅ Rebranche bien l'event ici !
+    const filtre = document.getElementById("filtrePeriode");
+    if (filtre) {
+      filtre.addEventListener("change", () => {
+        afficherHistoriqueTravaux(vehiculeId);
+      });
+    }
+  }
+}
 
 
-
+if (fichierBase === "historique.html") {
+  afficherHistoriqueGlobal();
+}
 
 
     })
@@ -321,7 +338,6 @@ if (data.success) {
   }
 }
 
-
 function afficherTravauxVehicule(vehiculeId) {
   const zone = document.getElementById("listeTravaux");
   if (!zone) {
@@ -332,37 +348,60 @@ function afficherTravauxVehicule(vehiculeId) {
   fetch(`/api/travaux-api.php?vehicule_id=${vehiculeId}`)
     .then(res => res.json())
     .then(travaux => {
+      zone.innerHTML = ""; // 🔁 Reset complet
+
+      // ✅ Toujours afficher le bouton historique
+      const boutonHistorique = document.createElement("button");
+      boutonHistorique.textContent = "📜 Voir l’historique";
+      boutonHistorique.className = "btn-historique";
+      boutonHistorique.onclick = () => {
+        chargerPage(`historiqueTravaux.html?vehicule=${vehiculeId}`);
+      };
+      zone.appendChild(boutonHistorique);
+
+      // Vérifie si y'a des travaux
       if (!Array.isArray(travaux) || travaux.length === 0) {
-        zone.innerHTML = "<p>Aucun travail trouvé pour ce véhicule.</p>";
+        const msg = document.createElement("p");
+        msg.textContent = "Aucun travail trouvé pour ce véhicule.";
+        zone.appendChild(msg);
         return;
       }
 
-      zone.innerHTML = "";
-      travaux.forEach(t => {
+      const travauxActifs = travaux.filter(t => t.statut !== "terminé");
+
+      if (travauxActifs.length === 0) {
+        const msg = document.createElement("p");
+        msg.textContent = "Aucun travail actif.";
+        zone.appendChild(msg);
+        return;
+      }
+
+      // 🔁 Affiche chaque travail actif
+      travauxActifs.forEach(t => {
         const div = document.createElement("div");
         div.className = "travail-card";
+
         div.innerHTML = `
-          <strong>${t.description}</strong> <br>
-          Début : ${t.date_debut || "-"} <br>
-          Fin : ${t.date_fin || "-"} <br>
-          Statut : ${t.statut}
+          <strong>${t.description}</strong><br>
+          Début : ${t.date_debut || "-"}<br>
+          Fin : ${t.date_fin || "-"}<br>
+          Statut : ${t.statut}<br>
 
-           <button onclick="chargerPage('addPiece.html?id=${t.id}')"> ✏️ Modifier/Ajouter une pièce </button>
-            <button onclick="supprimerTravail(${t.id}, ${vehiculeId})" style="color:red;">🗑 Supprimer</button>
+          <button onclick="chargerPage('addPiece.html?id=${t.id}')">✏️ Modifier/Ajouter une pièce</button>
+          <button onclick="supprimerTravail(${t.id}, ${vehiculeId})" style="color:red;">🗑 Supprimer</button>
         `;
- if (!t.date_debut && t.statut !== "terminé") {
-  div.innerHTML += `<button onclick="ouvrirModalDemarrer(${t.id}, ${vehiculeId})">▶️ Démarrer</button>`;
-}
 
+        if (!t.date_debut && t.statut !== "terminé") {
+          div.innerHTML += `<button onclick="ouvrirModalDemarrer(${t.id}, ${vehiculeId})">▶️ Démarrer</button>`;
+        } else if (t.date_debut && !t.date_fin) {
+          if (t.en_pause) {
+            div.innerHTML += `<button onclick="reprendreTravail(${t.id})">▶️ Reprendre</button>`;
+          } else {
+            div.innerHTML += `<button onclick="pauseTravail(${t.id})">⏸️ Pause</button>`;
+            div.innerHTML += `<button onclick="finaliserTravail(${t.id})" style="color:green;">✅ Finaliser</button>`;
+          }
+        }
 
- else if (t.date_debut && !t.date_fin) {
-  if (t.en_pause) {
-    div.innerHTML += `<button onclick="reprendreTravail(${t.id})">▶️ Reprendre</button>`;
-  } else {
-    div.innerHTML += `<button onclick="pauseTravail(${t.id})">⏸️ Pause</button>`;
-    div.innerHTML += `<button onclick="finaliserTravail(${t.id})" style="color:green;">✅ Finaliser</button>`;
-  }
-}
         zone.appendChild(div);
       });
     })
@@ -371,6 +410,9 @@ function afficherTravauxVehicule(vehiculeId) {
       zone.innerHTML = "<p>Erreur serveur</p>";
     });
 }
+
+
+
 
 
 function supprimerTravail(travauxId, vehiculeId) {
@@ -1154,3 +1196,102 @@ document.getElementById("btnFinaliserDirect").addEventListener("click", () => {
       showToast(data.message || "Travail finalisé.");
     });
 });
+
+
+
+function afficherHistoriqueTravaux(vehiculeId) {
+  const periode = document.getElementById("filtrePeriode").value;
+
+  let url = `/api/travaux-api.php?historique=1&vehicule_id=${vehiculeId}`;
+  if (periode !== "all") {
+    url += `&jours=${periode}`;
+  }
+
+  console.log("📡 API URL:", url); // 👀 debug
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const zone = document.getElementById("historiqueTravaux");
+      if (!data.length) {
+        zone.innerHTML = "<p>Aucun travail trouvé.</p>";
+        return;
+      }
+
+      zone.innerHTML = "";
+      data.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "travail-card";
+        div.innerHTML = `
+          <strong>${t.description}</strong><br>
+          📆 ${t.date_fin}<br>
+          💶 ${t.total} €
+        `;
+        zone.appendChild(div);
+      });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const zone = document.getElementById("historiqueTravaux");
+  if (zone && zone.dataset.id) {
+    currentVehiculeId = zone.dataset.id;
+    afficherHistoriqueTravaux(currentVehiculeId);
+
+    const filtre = document.getElementById("filtrePeriode");
+    if (filtre) {
+      filtre.addEventListener("change", () => {
+        afficherHistoriqueTravaux(currentVehiculeId);
+      });
+    }
+  }
+});
+
+
+
+
+function afficherHistoriqueGlobal() {
+  const zone = document.getElementById("historiqueGlobal");
+  zone.innerHTML = "Chargement...";
+
+  fetch("/api/travaux-api.php?historique_global=1")
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        zone.innerHTML = "<p>⚠️ Aucun travail terminé trouvé.</p>";
+        return;
+      }
+
+      const groupByDate = {};
+
+      data.forEach(t => {
+        const date = t.date_fin?.split(" ")[0] || "Inconnue";
+        if (!groupByDate[date]) groupByDate[date] = [];
+        groupByDate[date].push(t);
+      });
+
+      zone.innerHTML = "";
+      for (const date in groupByDate) {
+        const section = document.createElement("div");
+        section.className = "jour-historique";
+        section.innerHTML = `<h3>📅 ${date}</h3>`;
+
+        groupByDate[date].forEach(t => {
+          section.innerHTML += `
+            <div class="travail-card">
+              🔧 ${t.description}<br>
+              👤 ${t.nom} ${t.prenom}<br>
+              🚗 ${t.marque} ${t.modele}<br>
+              🧾 Total : ${t.total} €
+            </div>
+          `;
+        });
+
+        zone.appendChild(section);
+      }
+    })
+    .catch(err => {
+      zone.innerHTML = "<p>💥 Erreur lors du chargement de l’historique</p>";
+      console.error("❌ Erreur API historique :", err);
+    });
+}

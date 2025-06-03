@@ -1,8 +1,7 @@
 <?php
 require_once 'db.php';
 header('Content-Type: application/json');
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['planning'])) {
@@ -202,6 +201,45 @@ $stmt->execute([$taux, $travailId]);
     }
     exit;
 }
+// === Travaux terminés (historique)
+elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['historique']) && isset($_GET['vehicule_id'])) {
+    $vehiculeId = $_GET['vehicule_id'];
+    $jours = isset($_GET['jours']) ? intval($_GET['jours']) : null;
+
+    $sql = "
+        SELECT * FROM travaux
+        WHERE vehicule_id = ? AND statut IN ('terminé', 'reglé')
+    ";
+    $params = [$vehiculeId];
+
+    if ($jours) {
+        $sql .= " AND date_fin >= DATE_SUB(NOW(), INTERVAL ? DAY)";
+        $params[] = $jours;
+    }
+
+    $sql .= " ORDER BY date_fin DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    exit;
+}
+
+
+elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['historique_global'])) {
+    $stmt = $pdo->prepare("
+        SELECT t.*, c.nom, c.prenom, v.marque, v.modele
+        FROM travaux t
+        JOIN clients c ON c.id = t.client_id
+        JOIN vehicules v ON v.id = t.vehicule_id
+        WHERE t.statut IN ('terminé', 'reglé')
+        ORDER BY t.date_fin DESC
+    ");
+    $stmt->execute();
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    exit;
+}
 
 // === Création classique d’un travail
 elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -251,7 +289,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['vehicule_id'])) {
                 WHERE p.travail_id = t.id AND p.fin_pause IS NULL
             ) AS en_pause
         FROM travaux t
-        WHERE t.vehicule_id = ?
+        WHERE t.vehicule_id = ? AND t.statut NOT IN ('terminé', 'reglé')
         ORDER BY t.date_debut DESC
     ");
     $stmt->execute([$_GET['vehicule_id']]);
@@ -266,6 +304,9 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE' && isset($_GET['travaux_id'])) {
     echo json_encode(['success' => true, 'message' => 'Travail supprimé']);
     exit;
 }
+
+
+
 
 // === Méthode non supportée
 echo json_encode(['success' => false, 'message' => 'Méthode non supportée.']);
