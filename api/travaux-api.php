@@ -228,18 +228,31 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['historique']) && is
 
 
 elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['historique_global'])) {
-    $stmt = $pdo->prepare("
+    $jours = isset($_GET['jours']) ? intval($_GET['jours']) : null;
+
+    $sql = "
         SELECT t.*, c.nom, c.prenom, v.marque, v.modele
         FROM travaux t
         JOIN clients c ON c.id = t.client_id
         JOIN vehicules v ON v.id = t.vehicule_id
         WHERE t.statut IN ('terminé', 'reglé')
-        ORDER BY t.date_fin DESC
-    ");
-    $stmt->execute();
+    ";
+
+    $params = [];
+
+    if ($jours) {
+        $sql .= " AND t.date_fin >= DATE_SUB(NOW(), INTERVAL ? DAY)";
+        $params[] = $jours;
+    }
+
+    $sql .= " ORDER BY t.date_fin DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     exit;
 }
+
 
 // === Création classique d’un travail
 elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {

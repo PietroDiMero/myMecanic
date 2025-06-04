@@ -94,6 +94,16 @@ if (fichierBase === "historiqueTravaux.html" && params) {
 
 if (fichierBase === "historique.html") {
   afficherHistoriqueGlobal();
+
+  // 👇 Active le filtre période s’il existe
+  setTimeout(() => {
+    const select = document.getElementById("filtreHistoriqueGlobal");
+    if (select) {
+      select.addEventListener("change", () => {
+        afficherHistoriqueGlobal(select.value);
+      });
+    }
+  }, 50);
 }
 
 
@@ -1295,3 +1305,57 @@ function afficherHistoriqueGlobal() {
       console.error("❌ Erreur API historique :", err);
     });
 }
+
+
+function afficherHistoriqueGlobal(jours = "") {
+  const zone = document.getElementById("historiqueGlobal");
+  zone.innerHTML = "Chargement...";
+
+  let url = "/api/travaux-api.php?historique_global=1";
+  if (jours) {
+    url += `&jours=${jours}`;
+  }
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        zone.innerHTML = "<p>⚠️ Aucun travail terminé trouvé.</p>";
+        return;
+      }
+
+      const groupByDate = {};
+      data.forEach(t => {
+        const date = t.date_fin?.split(" ")[0] || "Inconnue";
+        if (!groupByDate[date]) groupByDate[date] = [];
+        groupByDate[date].push(t);
+      });
+
+      zone.innerHTML = "";
+      for (const date in groupByDate) {
+        const section = document.createElement("div");
+        section.className = "jour-historique";
+        section.innerHTML = `<h3>📅 ${date}</h3>`;
+
+        groupByDate[date].forEach(t => {
+          section.innerHTML += `
+            <div class="travail-card">
+              🔧 ${t.description}<br>
+              👤 ${t.nom} ${t.prenom}<br>
+              🚗 ${t.marque} ${t.modele}<br>
+              🧾 Total : ${t.total} €
+            </div>
+          `;
+        });
+
+        zone.appendChild(section);
+      }
+    })
+    .catch(err => {
+      zone.innerHTML = "<p>💥 Erreur lors du chargement de l’historique</p>";
+      console.error("❌ Erreur API historique :", err);
+    });
+}
+
+
+document.getElementById("filtreHistoriqueGlobal").addEventListener("change", afficherHistoriqueGlobal);
