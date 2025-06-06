@@ -8,7 +8,7 @@
     padding: 0 10px;
   }
   .side-menu {
-    width: 200px;
+    width: 180px;
     padding-top: 70px;
   }
   button, .nav-button {
@@ -16,5 +16,11 @@
   }
   form {
     padding: 16px 12px;
+  }
+  .login-wrapper {
+    max-width: 90%;
+  }
+  .modal-content {
+    max-width: 90%;
   }
 }
