@@ -29,5 +29,5 @@ try {
 
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Erreur BDD', 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erreur ']);
 }

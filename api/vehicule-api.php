@@ -43,9 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             echo json_encode(['success' => true, 'message' => 'Véhicule ajouté avec succès']);
         } catch (PDOException $e) {
-            error_log("Erreur lors de l'ajout du véhicule: " . $e->getMessage());
+            error_log("Erreur lors de l'ajout du véhicule: ");
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Erreur serveur: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erreur serveur:']);
         }
     } else {
         echo json_encode(['success' => false, 'message' => 'Champs obligatoires manquants']);

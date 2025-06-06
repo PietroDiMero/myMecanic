@@ -42,7 +42,9 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   transition: background 0.3s;
-  overflow-x: hidden;
+  overflow-y: auto;
+  height: 100vh;
+  display: block;
 }
 
 h1, h2, h3 {
@@ -691,6 +693,10 @@ body.android-webview {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.android-webview .modal {
+  position: absolute;
 }
 
 /* ===============================

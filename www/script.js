@@ -1359,3 +1359,24 @@ function afficherHistoriqueGlobal(jours = "") {
 
 
 document.getElementById("filtreHistoriqueGlobal").addEventListener("change", afficherHistoriqueGlobal);
+
+if (/wv/.test(navigator.userAgent) || /Android/.test(navigator.userAgent)) {
+  document.body.classList.add('android-webview');
+}
+
+
+
+if (/Android/.test(navigator.userAgent)) {
+  document.body.classList.add('android-webview');
+}
+// Appliquer ça après un resize ou un appel manuel
+function centerModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.style.display = 'flex';
+  modal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function ouvrirModalTaux() {
+  document.getElementById('modalTaux').style.display = 'flex';
+  setTimeout(() => centerModal("modalTaux"), 100);
+}

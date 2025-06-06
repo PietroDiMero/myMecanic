@@ -24,7 +24,7 @@ $stmt->execute([$today, $tomorrow]); // ✅ cette fois, 2 dates ⇒ 2 paramètre
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         exit;
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Erreur BDD', 'error' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Erreur']);
         exit;
     }
 }
@@ -288,7 +288,7 @@ elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         echo json_encode(['success' => true, 'message' => 'Travail + rendez-vous ajoutés avec succès.']);
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Erreur serveur BDD.', 'error' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Erreur serveur']);
     }
     exit;
 }

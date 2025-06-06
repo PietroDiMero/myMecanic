@@ -18,5 +18,5 @@ try {
     $stmt->execute([$id]);
     echo json_encode(['success' => true, 'message' => 'Client supprimé avec succès']);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Erreur : ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Erreur de suppression client ']);
 }

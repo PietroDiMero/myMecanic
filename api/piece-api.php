@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         echo json_encode(['success' => true, 'message' => 'Pièce ajoutée et total mis à jour.']);
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Erreur BDD.', 'error' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Erreur.']);
     }
 
     exit;
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && isset($_GET['piece_id'])) {
         echo json_encode(['success' => true, 'message' => 'Pièce supprimée et total mis à jour.']);
     } catch (PDOException $e) {
         $pdo->rollBack();
-        echo json_encode(['success' => false, 'message' => 'Erreur BDD.', 'error' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Erreur BDD.']);
     }
     exit;
 }
