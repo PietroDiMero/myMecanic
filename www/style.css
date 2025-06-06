@@ -2,21 +2,50 @@
    🌐 VARIABLES GLOBALES
 =============================== */
 :root {
-  --bg-main: #f0f4f8;
-  --text-main: #1f1f1f;
-  --text-title: #112;
-  --accent-primary: #4f8cff;
-  --accent-gradient: linear-gradient(90deg, #4f8cff 0%, #1ec8e7 100%);
-  --accent-danger: linear-gradient(90deg, #ff4f6d 0%, #ffb86c 100%);
-  --card-bg: #ffffff;
-  --input-bg: #f9fafc;
-  --border-default: #d3d9e4;
-  --border-focus: #4f8cff;
+  --background: 210 11% 98%;
+  --foreground: 213 27% 17%;
+  --muted: 210 11% 96%;
+  --muted-foreground: 215 16% 47%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 213 27% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 213 27% 17%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 98%;
+  --secondary-foreground: 222 84% 5%;
+  --accent: 210 40% 98%;
+  --accent-foreground: 222 84% 5%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 217 91% 60%;
+  --radius: 0.75rem;
+
+  /* Custom colors */
+  --success: 142 76% 36%;
+  --warning: 25 95% 53%;
+
+  /* Legacy aliases */
+  --bg-main: hsl(var(--background));
+  --text-main: hsl(var(--foreground));
+  --text-title: hsl(var(--foreground));
+  --accent-primary: hsl(var(--primary));
+  --accent-gradient: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  --accent-danger: linear-gradient(90deg, hsl(var(--destructive)) 0%, hsl(var(--warning)) 100%);
+  --card-bg: hsl(var(--card));
+  --input-bg: hsl(var(--input));
+  --border-default: hsl(var(--border));
+  --border-focus: hsl(var(--primary));
   --shadow-small: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-large: 0 6px 20px rgba(79, 140, 255, 0.15);
-  --radius-base: 14px;
+  --radius-base: var(--radius);
   --font-base: 'Inter', Arial, sans-serif;
   --transition-fast: 0.2s ease-in-out;
+}
+* {
+  border-color: hsl(var(--border));
 }
 /* ✅ Corrige les débordements horizontaux */
 *, *::before, *::after {
@@ -26,6 +55,17 @@ button {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+}
+button, [role="button"], input[type="submit"], input[type="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+input, textarea, select {
+  font-size: 16px;
+  width: 100%;
+}
+[data-radix-popper-content-wrapper] {
+  z-index: 50;
 }
 
 
@@ -37,6 +77,9 @@ body {
   font-family: var(--font-base);
   background: var(--bg-main);
   color: var(--text-main);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
   margin: 0;
   padding-top: 70px;
   min-height: 100dvh;
@@ -45,6 +88,12 @@ body {
   overflow-y: auto;
   height: 100vh;
   display: block;
+}
+
+/* Better mobile scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 h1, h2, h3 {
@@ -700,18 +749,38 @@ body.android-webview {
 }
 
 /* ===============================
-   🌙 DARK MODE (commenté)
+   🌙 DARK MODE
 =============================== */
-/*
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-main: #0f1216;
-    --text-main: #f2f2f2;
-    --text-title: #ffffff;
-    --card-bg: #1a1e23;
-    --input-bg: #1f2329;
-    --border-default: #2c2f36;
-    --shadow-small: 0 1px 4px rgba(0, 0, 0, 0.5);
-  }
+.dark {
+  --background: 222 84% 5%;
+  --foreground: 210 40% 98%;
+  --muted: 217 32% 17%;
+  --muted-foreground: 215 20% 65%;
+  --popover: 222 84% 5%;
+  --popover-foreground: 210 40% 98%;
+  --card: 222 84% 5%;
+  --card-foreground: 210 40% 98%;
+  --border: 217 32% 17%;
+  --input: 217 32% 17%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217 32% 17%;
+  --secondary-foreground: 210 40% 98%;
+  --accent: 217 32% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 217 91% 60%;
+
+  --success: 142 76% 36%;
+  --warning: 25 95% 53%;
+
+  /* Legacy aliases */
+  --bg-main: hsl(var(--background));
+  --text-main: hsl(var(--foreground));
+  --text-title: hsl(var(--foreground));
+  --card-bg: hsl(var(--card));
+  --input-bg: hsl(var(--input));
+  --border-default: hsl(var(--border));
+  --shadow-small: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
-*/
