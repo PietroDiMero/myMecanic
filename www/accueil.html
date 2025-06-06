@@ -6,7 +6,8 @@
         <title>Accueil</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="assets/css/main.css">
+        <link rel="stylesheet" href="assets/css/mobile.css">
         <!-- ✅ Chart.js pour le graphique stats -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -69,86 +70,6 @@
 </div>
 
 <!-- ✅ Styles -->
-<style>
-
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--accent-primary, #323232);
-    color: white;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-weight: 500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 9999;
-  }
-  .toast.show {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  .modal.hidden { display: none; }
-
-.modal {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  min-height: 100vh;
-  padding: 2vh 16px;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  overflow-y: auto; /* ✅ Permet de scroller si clavier prend trop de place */
-}
-
-.modal-content {
-  width: 100%;
-  max-width: 420px;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-top: auto; /* ✅ Ajoute un effet “centré flexible” */
-  margin-bottom: auto;
-  transform: translateY(0); /* assure que pas de translation initiale */
-}
-
-
-
-  .modal-content p {
-    margin-bottom: 20px;
-    font-size: 1.1em;
-    font-weight: 500;
-  }
-
-  .modal-content button {
-    margin: 0 10px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1em;
-  }
-
-  .confirm-btn-yes {
-    background-color: #4caf50;
-    color: white;
-  }
-
-  .confirm-btn-no {
-    background-color: #f44336;
-    color: white;
-  }
-</style>
 <!-- ✅ Modale taux horaire ou finalisation par forfait -->
 <div id="modalTaux" class="modal" style="display:none;">
   <div class="modal-content">
@@ -163,7 +84,7 @@
 </div>
 
 
-        <script src="script.js"></script>
+        <script src="assets/js/main.js"></script>
         <script>
   document.addEventListener("DOMContentLoaded", () => {
     chargerPage("home.html");

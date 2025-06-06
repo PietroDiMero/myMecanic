@@ -1,0 +1,26 @@
+@media (max-width: 480px) {
+  body {
+    font-size: 1.05rem;
+    padding-top: 60px;
+  }
+  .app-navbar {
+    height: 60px;
+    padding: 0 10px;
+  }
+  .side-menu {
+    width: 180px;
+    padding-top: 70px;
+  }
+  button, .nav-button {
+    font-size: 1rem;
+  }
+  form {
+    padding: 16px 12px;
+  }
+  .login-wrapper {
+    max-width: 90%;
+  }
+  .modal-content {
+    max-width: 90%;
+  }
+}

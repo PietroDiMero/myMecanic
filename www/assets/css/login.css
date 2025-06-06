@@ -1,0 +1,118 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100dvh;
+  background: linear-gradient(to right, #4f8cff, #1ec8e7);
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.android-webview {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  background: #fff;
+  padding: 2rem 1.8rem;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 420px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.login-wrapper h2 {
+  text-align: center;
+  color: #1f2e42;
+  font-size: 1.6em;
+  font-weight: 700;
+}
+
+.login-wrapper form {
+  display: grid;
+  gap: 18px;
+}
+
+.login-wrapper input {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1.5px solid #d0d7e2;
+  font-size: 1em;
+  background: #f9fafb;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.login-wrapper input:focus {
+  border-color: #4f8cff;
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
+  outline: none;
+}
+
+.login-wrapper button {
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #4f8cff 0%, #1ec8e7 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(79, 140, 255, 0.3);
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.login-wrapper button:hover {
+  filter: brightness(1.05);
+}
+
+.login-wrapper button:active {
+  transform: scale(0.97);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  display: none;
+  font-size: 0.95em;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+}
+
+@media (max-width: 480px) {
+  .login-wrapper {
+    padding: 1.5rem 1.2rem;
+    border-radius: 12px;
+  }
+  .login-wrapper h2 {
+    font-size: 1.4em;
+  }
+  .login-wrapper input,
+  .login-wrapper button {
+    font-size: 1em;
+  }
+}
